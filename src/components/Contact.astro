@@ -1,0 +1,49 @@
+---
+import { SITE } from '../content/site';
+---
+<section class="section reveal" id="contact">
+  <div class="section-head">
+    <span class="section-label">07 / Contact</span>
+    <h2 class="section-title">Say hello.</h2>
+  </div>
+  <div class="contact-grid">
+    <p class="contact-lead">
+      Looking to hire, consult, or trade ideas? Email is the fastest route, or book a
+      short call directly.
+    </p>
+    <ul class="contact-links">
+      <li>
+        <span class="k">Book a call</span>
+        <button
+          type="button"
+          class="link-button"
+          data-cal-link="shariq/30min"
+          data-cal-namespace="30min"
+          data-cal-config='{"layout":"month_view","useSlotsViewOnSmallScreen":"true","theme":"auto"}'
+        >30 min, no commitment</button>
+      </li>
+      <li>
+        <span class="k">Email</span>
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      </li>
+      <li>
+        <span class="k">LinkedIn</span>
+        <a href={SITE.linkedin} target="_blank" rel="noreferrer">/in/shariqfarooqui</a>
+      </li>
+      <li>
+        <span class="k">GitHub</span>
+        <a href={SITE.github} target="_blank" rel="noreferrer">/shariq-farooqui</a>
+      </li>
+      {SITE.cvUrl && (
+        <li>
+          <span class="k">CV</span>
+          <a href={SITE.cvUrl} target="_blank" rel="noreferrer">Download (PDF)</a>
+        </li>
+      )}
+      <li>
+        <span class="k">Location</span>
+        <span>Manchester, UK &middot; remote-friendly</span>
+      </li>
+    </ul>
+  </div>
+</section>

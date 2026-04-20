@@ -1,0 +1,24 @@
+---
+import { POSTS } from '../content/site';
+
+interface Props {
+  brand: string;
+}
+const { brand } = Astro.props;
+const hasWriting = POSTS.length > 0;
+---
+<nav class="nav" aria-label="Primary">
+  <span class="nav-brand"><span class="dot"></span>{brand}</span>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#now">Now</a>
+    <a href="#consultancy">Consultancy</a>
+    <a href="#work">Work</a>
+    <a href="#recs">Recs</a>
+    {hasWriting && <a href="#writing">Writing</a>}
+    <a href="#contact" class="nav-cta">Get in touch</a>
+    <button class="nav-theme" data-theme-toggle aria-label="Toggle theme" title="Toggle theme">
+      &#x263E;
+    </button>
+  </div>
+</nav>

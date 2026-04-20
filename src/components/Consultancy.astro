@@ -1,0 +1,50 @@
+---
+import { SERVICES, SITE } from '../content/site';
+---
+<section class="section reveal" id="consultancy">
+  <div class="section-head">
+    <span class="section-label">03 / Consultancy</span>
+    <h2 class="section-title">Hire me for AI work.</h2>
+  </div>
+
+  <p class="prose consultancy-intro">
+    {SITE.consultancyIntro}
+  </p>
+
+  <div class="svc-grid">
+    {SERVICES.map((s) => (
+      <div class="svc">
+        <div class="svc-num">{s.num}</div>
+        <h3 class="svc-name">{s.name}</h3>
+        <p class="svc-blurb">{s.blurb}</p>
+        <div class="svc-deliverable">
+          <span class="ico">&rsaquo;</span>{s.deliverable}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="svc-cta-row">
+    <p>
+      Every engagement starts with a <strong>free 30-minute call</strong> to see whether
+      it&rsquo;s a fit. Pricing is agreed per engagement and shared on the intro call.
+    </p>
+    <div class="svc-cta-stack">
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-cal-link="shariq/30min"
+        data-cal-namespace="30min"
+        data-cal-config='{"layout":"month_view","useSlotsViewOnSmallScreen":"true","theme":"auto"}'
+      >
+        Book a call <span class="arrow">&rarr;</span>
+      </button>
+      <a href={`mailto:${SITE.email}?subject=Consultancy enquiry`} class="btn">
+        Email instead
+      </a>
+      <a href={SITE.linkedin} target="_blank" rel="noreferrer" class="btn">
+        LinkedIn DM
+      </a>
+    </div>
+  </div>
+</section>

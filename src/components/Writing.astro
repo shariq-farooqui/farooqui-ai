@@ -1,0 +1,25 @@
+---
+import { POSTS } from '../content/site';
+---
+{POSTS.length > 0 && (
+  <section class="section reveal" id="writing">
+    <div class="section-head">
+      <span class="section-label">06 / Writing</span>
+      <h2 class="section-title">Notes &amp; essays.</h2>
+    </div>
+    <p class="prose" style="max-width: 62ch; margin-bottom: 8px; color: var(--muted); font-style: italic;">
+      A small, slow place for things I&rsquo;ve learned in production. No newsletters, no SEO, no AI-generated filler.
+    </p>
+    <div class="writing-list">
+      {POSTS.map((p) => (
+        <article class="writing-item">
+          <span class="dt">{p.dt}</span>
+          <span class="ti">
+            {p.href ? <a href={p.href}>{p.ti}</a> : p.ti}
+          </span>
+          <span class="rd">{p.rd}</span>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

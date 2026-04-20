@@ -1,0 +1,27 @@
+---
+import { WORK } from '../content/site';
+---
+<section class="section reveal" id="work">
+  <div class="section-head">
+    <span class="section-label">04 / Work</span>
+    <h2 class="section-title">Selected work.</h2>
+    <span class="section-count">{WORK.length} / projects</span>
+  </div>
+  <div class="work-list">
+    {WORK.map((w) => (
+      <article class="work-item">
+        <span class="yr">{w.yr}</span>
+        <div>
+          <h3 class="title">
+            {w.title} <span class="at">{w.at}</span>
+          </h3>
+        </div>
+        <span class="tag">{w.tag}</span>
+        <p class="sum">{w.sum}</p>
+        <div class="chips">
+          {w.chips.map((c) => <span class="chip">{c}</span>)}
+        </div>
+      </article>
+    ))}
+  </div>
+</section>

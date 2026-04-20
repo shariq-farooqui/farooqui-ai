@@ -1,0 +1,26 @@
+---
+import { QUOTES, SITE } from '../content/site';
+---
+<section class="section reveal" id="recs">
+  <div class="section-head">
+    <span class="section-label">05 / Recommendations</span>
+    <h2 class="section-title">People I&rsquo;ve worked with.</h2>
+  </div>
+  <div class="quotes">
+    {QUOTES.map((q) => (
+      <blockquote class="quote">
+        <p>{q.text}</p>
+        <div class="quote-meta">
+          <a href={q.linkedin} target="_blank" rel="noreferrer"><strong>{q.name}</strong></a>
+          &middot; {q.role}<br/>
+          {q.ctx}
+        </div>
+      </blockquote>
+    ))}
+  </div>
+  <p class="recs-more">
+    <a href={SITE.recommendationsUrl} target="_blank" rel="noreferrer">
+      Read the full versions on LinkedIn &rarr;
+    </a>
+  </p>
+</section>

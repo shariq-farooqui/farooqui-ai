@@ -1,0 +1,32 @@
+---
+import { SITE } from '../content/site';
+---
+<header class="hero">
+  <div class="hero-kicker">
+    <span class="pulse"></span>
+    <span>{SITE.kicker}</span>
+  </div>
+  <h1>Shariq<br/>Farooqui.</h1>
+  <p class="hero-tag" data-typewriter data-text={SITE.tagline} data-speed="26" data-delay="300">
+    {SITE.tagline}
+  </p>
+  <div class="hero-ctas">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-cal-link="shariq/30min"
+      data-cal-namespace="30min"
+      data-cal-config='{"layout":"month_view","useSlotsViewOnSmallScreen":"true","theme":"auto"}'
+    >
+      Book a call <span class="arrow">&rarr;</span>
+    </button>
+    <a href="#consultancy" class="btn">What I do</a>
+    <a href={`mailto:${SITE.email}`} class="btn">Get in touch</a>
+  </div>
+  <div class="hero-meta">
+    <div><span class="k">Based</span>Manchester, UK</div>
+    <div><span class="k">Visa</span>Global Talent (full work rights)</div>
+    <div><span class="k">Current</span>Pimberly &middot; Essex KTP</div>
+    <div><span class="k">Focus</span>LLM systems &middot; evals &middot; agents</div>
+  </div>
+</header>

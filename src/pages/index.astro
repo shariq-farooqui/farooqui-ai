@@ -1,0 +1,31 @@
+---
+import About from '../components/About.astro';
+import Consultancy from '../components/Consultancy.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import Hero from '../components/Hero.astro';
+import Nav from '../components/Nav.astro';
+import Now from '../components/Now.astro';
+import Testimonials from '../components/Testimonials.astro';
+import Work from '../components/Work.astro';
+import Writing from '../components/Writing.astro';
+import { SITE } from '../content/site';
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Shariq Farooqui · AI engineer"
+  description="Shariq Farooqui, AI engineer in Manchester. LLM systems that survive audit, evals, and real users. Available for consultancy."
+>
+  <Nav brand={SITE.brand} />
+  <main class="page">
+    <Hero />
+    <About />
+    <Now />
+    <Work />
+    <Consultancy />
+    <Testimonials />
+    <Writing />
+    <Contact />
+  </main>
+  <Footer />
+</Base>
