@@ -1,0 +1,30 @@
+{
+  "name": "farooqui-ai",
+  "description": "Personal site for farooqui.ai",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview --host",
+    "check": "astro check",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "astro": "6.1.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.8",
+    "@biomejs/biome": "2.4.12",
+    "@commitlint/cli": "20.5.0",
+    "@commitlint/config-conventional": "20.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "typescript": "6.0.3"
+  },
+  "lint-staged": {
+    "*.{ts,js,astro,json,css,md}": "biome check --write --no-errors-on-unmatched"
+  }
+}

@@ -1,0 +1,13 @@
+.git
+.github
+.astro
+node_modules
+dist
+*.md
+.editorconfig
+.gitignore
+.dockerignore
+justfile
+biome.json
+LICENSE
+pricing.md
