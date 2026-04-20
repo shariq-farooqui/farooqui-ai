@@ -1,0 +1,182 @@
+# One workflow for everything.
+#
+# Every PR runs the `check` job: lint, type-check, build. Pre-commit hooks
+# catch most issues locally; this is the backstop for commits made with
+# --no-verify or on a clean-checkout test.
+#
+# Pushes of a v*.*.* git tag additionally build the container image, push it
+# to GHCR, scan it for known CVEs, and sign it. Releases are deliberate:
+# merges to main do not publish. To ship, tag the commit (git tag v0.1.0 &&
+# git push origin v0.1.0).
+
+name: publish
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    tags: ['v*.*.*']
+
+concurrency:
+  group: publish-${{ github.ref }}
+  # PRs: cancel older runs when a new commit is pushed.
+  # Tags: never cancel a publish mid-flight, since that can leave the
+  # registry with a half-pushed image.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write    # create GitHub Releases on tag push
+  packages: write    # push image to ghcr.io
+  id-token: write    # cosign uses the Actions OIDC token to sign keylessly
+  security-events: write  # upload Trivy findings to the Security tab
+
+env:
+  # Nested path so future subdomains (e.g. /family) don't collide with other
+  # repos under the same owner.
+  IMAGE: ghcr.io/${{ github.repository }}/personal
+
+jobs:
+
+  # Lint + type-check + build. Runs on every event.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      # astro check shells out via /usr/bin/env node, so the runner's Node
+      # matters even when scripts are invoked through Bun. Astro 6 requires
+      # Node >=22.12.
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '22.22.2'
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: 1.3.13
+
+      - run: bun install --frozen-lockfile
+      - run: bun run lint      # biome
+      - run: bun run check     # astro check
+      - run: bun run build
+
+      # Keep a week of builds around for debugging without rerunning CI.
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+          retention-days: 7
+          if-no-files-found: error
+
+  # Build the container image and push it to GHCR. Skipped on PRs.
+  build-push:
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name != 'pull_request'
+    outputs:
+      # The image digest. Scan and sign jobs use it so they operate on the
+      # exact bytes that were just pushed.
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: docker/setup-buildx-action@v4.0.0
+
+      - uses: docker/login-action@v4.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Injected by Actions; no PAT or manually-configured secret needed.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tag strategy:
+      #   sha-<short>   on every release, immutable. k3s manifests can pin here.
+      #   1.2.3, 1.2    semver tags from the git tag itself.
+      # No `latest` tag on purpose: too easy to deploy by accident.
+      - id: meta
+        uses: docker/metadata-action@v6.0.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.title=farooqui.ai personal site
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+
+      - id: build
+        uses: docker/build-push-action@v7.1.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub Actions cache. Turns a cold 60s build into ~10s when deps
+          # haven't changed.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Vulnerability scan. Trivy reads the pushed image and checks every OS
+  # package and library inside against a public CVE database. Fails the
+  # workflow if it finds anything HIGH or CRITICAL that has a fix available.
+  scan:
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ needs.build-push.outputs.digest }}
+          # SARIF is the file format GitHub's Security tab reads. We produce
+          # it here and upload it in the next step so findings show up in the
+          # repo UI with code links.
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          # Unfixed CVEs can't be resolved by bumping, so don't block on them.
+          ignore-unfixed: true
+
+      # Upload findings even when the scan failed, so the Security tab always
+      # has the latest data to show.
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v4.35.2
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
+  # Sign the image with cosign. No private key to manage: cosign proves this
+  # workflow's identity to Sigstore using the Actions OIDC token, gets a
+  # short-lived certificate in return, and uses that to sign. The signature
+  # lives in a public transparency log. Anyone can verify the image was
+  # signed by this repo's workflow; instructions are in the README.
+  sign:
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: sigstore/cosign-installer@v4.1.1
+
+      - uses: docker/login-action@v4.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: sign image
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+        env:
+          IMAGE: ${{ env.IMAGE }}
+          DIGEST: ${{ needs.build-push.outputs.digest }}
+
+  # Create a GitHub Release once the image is built, scanned and signed. Notes
+  # are generated from commits since the previous tag.
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-push, scan, sign]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: softprops/action-gh-release@v3.0.0
+        with:
+          generate_release_notes: true
