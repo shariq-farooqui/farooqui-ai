@@ -8,8 +8,8 @@ export const SITE = {
   bookingUrl: 'https://cal.eu/shariq/30min',
   // Public URL to the CV PDF. Leave empty to hide the Contact link.
   cvUrl: '',
-  kicker: 'Available for freelance AI work',
-  tagline: 'LLM systems that survive audit, evals, and real users.',
+  kicker: 'Available to consult individuals and SMEs',
+  tagline: 'Building LLM systems that survive audit, evals, and real users.',
   consultancyIntro:
     'Most AI features stall between \u2018working demo\u2019 and \u2018in production.\u2019 I\u2019ve worked on that gap in finance, e-commerce, and regulated compliance, and I can help you do it faster.',
 } as const;
