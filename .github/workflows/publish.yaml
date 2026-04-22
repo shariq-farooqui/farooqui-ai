@@ -118,28 +118,37 @@ jobs:
           cache-to: type=gha,mode=max
 
   # Vulnerability scan. Trivy reads the pushed image and checks every OS
-  # package and library inside against a public CVE database. Fails the
-  # workflow if it finds anything HIGH or CRITICAL that has a fix available.
+  # package and library inside against a public CVE database. Two passes:
+  # the gate fails the workflow on HIGH or CRITICAL findings that have a
+  # fix available; the report produces a SARIF of every severity so the
+  # Security tab still surfaces MEDIUM and LOW for awareness without
+  # blocking releases.
   scan:
     runs-on: ubuntu-latest
     needs: build-push
     if: github.event_name != 'pull_request'
     steps:
-      - uses: aquasecurity/trivy-action@0.35.0
+      - name: trivy gate
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.IMAGE }}@${{ needs.build-push.outputs.digest }}
-          # SARIF is the file format GitHub's Security tab reads. We produce
-          # it here and upload it in the next step so findings show up in the
-          # repo UI with code links.
-          format: sarif
-          output: trivy.sarif
+          format: table
           severity: HIGH,CRITICAL
           exit-code: '1'
           # Unfixed CVEs can't be resolved by bumping, so don't block on them.
           ignore-unfixed: true
 
-      # Upload findings even when the scan failed, so the Security tab always
-      # has the latest data to show.
+      # Always produce the SARIF, even if the gate above failed, so the
+      # Security tab reflects the current image regardless of gate outcome.
+      - name: trivy report
+        if: always()
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ needs.build-push.outputs.digest }}
+          format: sarif
+          output: trivy.sarif
+          exit-code: '0'
+
       - if: always()
         uses: github/codeql-action/upload-sarif@v4.35.2
         with:
